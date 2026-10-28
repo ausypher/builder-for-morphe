@@ -55,7 +55,7 @@ class GitHubScraper(BaseScraper):
             seen[_ARCH_SUFFIX.sub("", name.removeprefix(prefix))] = None
         return AppMetadata(pkg_name=pkg_name, versions=list(seen) or [tag])
 
-    def download(self, url: str, version: str, dest: Path, arch: str, dpi: str, version_code: str | None = None) -> DownloadResult:
+    def download(self, url: str, version: str, dest: Path, arch: str, dpi: str, version_code: str | None = None, strict_arch: bool = False) -> DownloadResult:
         if not self._assets:
             self.fetch_metadata(url)
 
@@ -73,7 +73,7 @@ class GitHubScraper(BaseScraper):
                 if file_arch != "all":
                     continue
             else:
-                if file_arch not in (arch, "all"):
+                if file_arch != arch if strict_arch else file_arch not in (arch, "all"):
                     continue
 
             asset = a
