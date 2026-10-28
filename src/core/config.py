@@ -56,6 +56,9 @@ class AppEntry:
     skip_sigcheck: bool
     enabled: bool
     changelog_keywords: list[str]
+    min_size_mb: float | None
+    max_size_mb: float | None
+    strict_arch: bool
 
 def load_toml(path: Path) -> dict[str, object]:
     with path.open("rb") as fp:
@@ -132,5 +135,8 @@ def parse_app_entries(data: dict[str, object], main: Config) -> list[AppEntry]:
             skip_sigcheck=_parse_bool(t, "skip-sigcheck", False),
             enabled=_parse_bool(t, "enabled", True),
             changelog_keywords=keywords,
+            min_size_mb=float(t["min-size-mb"]) if t.get("min-size-mb") is not None else None,
+            max_size_mb=float(t["max-size-mb"]) if t.get("max-size-mb") is not None else None,
+            strict_arch=_parse_bool(t, "strict-arch", False),
         ))
     return entries
