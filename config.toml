@@ -65,13 +65,15 @@ apkmirror-dlurl = "https://www.apkmirror.com/apk/x-corp/twitter"
 
 [Instagram]
 enabled = true
-brand = "piko"
+app-name = "HushGram"
+brand = "hushgram"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/instagram/instagram-instagram"
 arch = "arm64-v8a"
-patcher-args = "-e 'Theme' -Oamoled=true"
+exclusive-patches = true
+patcher-args = "-e 'Install next to Instagram' -OappName='HushGram' -OmarkIcon=true"
 
 [Instagram.patches]
-"github:crimera/piko" = []
+"github:SysAdminDoc/HushGram" = ["Install next to Instagram"]
 
 [Google-Photos]
 enabled = false
