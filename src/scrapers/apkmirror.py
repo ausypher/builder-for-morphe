@@ -102,9 +102,12 @@ class APKMirrorScraper(BaseScraper):
         return DownloadResult(path=out_path, is_bundle=is_bundle)
 
     def _pick_variant(self, soup: BeautifulSoup, dpi: str, arch: str, version_code: str | None = None, version: str = "", strict_arch: bool = False) -> tuple[str, str] | None:
-        apparch: set[str] = {arch} if strict_arch and arch != "all" else set(_DEFAULT_ARCH)
-        if arch != "all":
-            apparch.add(arch)
+        if strict_arch and arch != "all":
+            apparch: set[str] = {arch}
+        else:
+            apparch = set(_DEFAULT_ARCH)
+            if arch != "all":
+                apparch.add(arch)
 
         rows = soup.select("div.table-row.headerFont")
         for bundle_type in ("APK", "BUNDLE"):
