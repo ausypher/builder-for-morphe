@@ -50,7 +50,7 @@ class APKMirrorScraper(BaseScraper):
             versions.append(v)
         return AppMetadata(pkg_name=m.group(1), versions=versions)
 
-    def download(self, url: str, version: str, dest: Path, arch: str, dpi: str, version_code: str | None = None) -> DownloadResult:
+    def download(self, url: str, version: str, dest: Path, arch: str, dpi: str, version_code: str | None = None, strict_arch: bool = False) -> DownloadResult:
         clean_ver = version.split("-")[0]
         release_url = self._release_urls.get(version) or self._release_urls.get(clean_ver)
         if release_url is None:
@@ -81,7 +81,7 @@ class APKMirrorScraper(BaseScraper):
         is_bundle = False
         soup_release = parse_html(release_html)
         if soup_release.select_one("div.table-row.headerFont:last-child"):
-            dl_url = self._pick_variant(soup_release, dpi, arch, version_code=version_code, version=version)
+            dl_url = self._pick_variant(soup_release, dpi, arch, version_code=version_code, version=version, strict_arch=strict_arch)
             if dl_url is None:
                 raise APKMirrorError("No matching variant found")
             release_html = self.net.get(dl_url[0])
@@ -101,8 +101,8 @@ class APKMirrorScraper(BaseScraper):
         self.net.download(final_url, out_path)
         return DownloadResult(path=out_path, is_bundle=is_bundle)
 
-    def _pick_variant(self, soup: BeautifulSoup, dpi: str, arch: str, version_code: str | None = None, version: str = "") -> tuple[str, str] | None:
-        apparch: set[str] = set(_DEFAULT_ARCH)
+    def _pick_variant(self, soup: BeautifulSoup, dpi: str, arch: str, version_code: str | None = None, version: str = "", strict_arch: bool = False) -> tuple[str, str] | None:
+        apparch: set[str] = {arch} if strict_arch and arch != "all" else set(_DEFAULT_ARCH)
         if arch != "all":
             apparch.add(arch)
 
@@ -135,7 +135,8 @@ class APKMirrorScraper(BaseScraper):
                             break
 
                 if version_code is not None:
-                    if extracted_vcode == version_code and b_type == bundle_type:
+                    arch_text = cells[1].get_text(strip=True)
+                    if extracted_vcode == version_code and b_type == bundle_type and (not strict_arch or arch_text == arch):
                         return urljoin("https://www.apkmirror.com", str(link["href"])), bundle_type
                     continue
 
