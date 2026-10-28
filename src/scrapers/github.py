@@ -73,7 +73,10 @@ class GitHubScraper(BaseScraper):
                 if file_arch != "all":
                     continue
             else:
-                if file_arch != arch if strict_arch else file_arch not in (arch, "all"):
+                if strict_arch:
+                    if file_arch != arch:
+                        continue
+                elif file_arch not in (arch, "all"):
                     continue
 
             asset = a
