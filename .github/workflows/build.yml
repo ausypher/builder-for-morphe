@@ -130,6 +130,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           KEYSTORE_BASE64: ${{ secrets.MORPHE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASS: Morphe
+          KEYSTORE_ALIAS: Morphe
         run: uv run main.py ${{ matrix.id }} ${{ matrix.arch }}
 
       - name: Upload APKs to draft release
