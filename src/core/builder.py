@@ -99,7 +99,7 @@ def _download_apk(entry: AppEntry, version: str, arch: str, pkg_name: str, scrap
         url = entry.dl_urls[src]
         pr(f"Downloading '{entry.table}' from '{src}'")
         try:
-            return scrapers[src].download(url, version, stock_apk, arch, entry.dpi, version_code=version_code)
+            return scrapers[src].download(url, version, stock_apk, arch, entry.dpi, version_code=version_code, strict_arch=entry.strict_arch)
         except (NetworkError, ScraperError) as exc:
             epr(f"Failed to fetch '{entry.table}' from '{src}' (version='{version}', arch='{arch}'): {exc}")
     raise BuilderError("Stock APK not found")
@@ -162,6 +162,12 @@ def _build_single(entry: AppEntry, arch: str, label: str, net: NetworkManager, p
         list_patches = patcher.list_patches(pkg_name, experimental=entry.version == "exp")
         version, vcode, force = _resolve_version(entry, patcher, list_patches, pkg_name, dl_from, scrapers, arch)
         dl_result = _download_apk(entry, version, arch, pkg_name, scrapers, dl_from, failed_sources, version_code=vcode)
+        size_mb = dl_result.path.stat().st_size / (1024 * 1024)
+        if entry.min_size_mb is not None and size_mb < entry.min_size_mb:
+            raise BuilderError(f"Source APK is too small: {size_mb:.2f} MiB; minimum is {entry.min_size_mb:.2f} MiB")
+        if entry.max_size_mb is not None and size_mb > entry.max_size_mb:
+            raise BuilderError(f"Source APK is too large: {size_mb:.2f} MiB; maximum is {entry.max_size_mb:.2f} MiB")
+        pr(f"Source APK size: {size_mb:.2f} MiB")
         _verify_sig(dl_result, pkg_name, patcher, label, entry.skip_sigcheck, strict_sigcheck)
         apk_output = _apply_patch(entry, arch, version, force, patcher, list_patches, dl_result)
         pr(f"Built {label}: '{apk_output}'")
